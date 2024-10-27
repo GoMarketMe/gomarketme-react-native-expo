@@ -1,0 +1,34 @@
+{
+  "name": "gomarketme-react-native-expo",
+  "version": "1.0.6",
+  "description": "Affiliate Marketing for React Native Expo-Based iOS and Android Apps.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepack": "yarn build"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "expo": "~51.0.28",
+    "expo-device": "^6.0.2",
+    "expo-in-app-purchases": "^14.5.0",
+    "expo-localization": "^15.0.3",
+    "react-native": "0.73.0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.20.0",
+    "typescript": "^5.6.3"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "in-app-purchases",
+    "affiliates",
+    "sdk",
+    "gomarketme"
+  ],
+  "author": "GoMarketMe",
+  "license": "MIT",
+  "homepage": "https://gomarketme.co"
+}
