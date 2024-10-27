@@ -1,6 +1,6 @@
 {
   "name": "gomarketme-react-native-expo",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Affiliate Marketing for React Native Expo-Based iOS and Android Apps.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -28,6 +28,10 @@
     "sdk",
     "gomarketme"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoMarketMe/gomarketme-react-native-expo.git"
+  },
   "author": "GoMarketMe",
   "license": "MIT",
   "homepage": "https://gomarketme.co"
