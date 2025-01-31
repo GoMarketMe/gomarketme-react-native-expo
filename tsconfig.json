@@ -1,23 +1,15 @@
 {
-    "compilerOptions": {
-      "target": "esnext",
-      "module": "commonjs",
-      "strict": true,
-      "jsx": "react-native",
-      "lib": ["esnext"],
-      "allowJs": true,
-      "skipLibCheck": true,
-      "esModuleInterop": true,
-      "moduleResolution": "node",
-      "resolveJsonModule": true,
-      "isolatedModules": true,
-      "noEmit": true
-    },
-    "exclude": [
-      "node_modules",
-      "babel.config.js",
-      "metro.config.js",
-      "jest.config.js"
-    ]
-  }
-  
+  "compilerOptions": {
+    "target": "ES6",                   // Or whatever target you need
+    "module": "CommonJS",              // Adjust depending on the module system you're using
+    "declaration": true,               // Generate type declaration files
+    "outDir": "./lib",                 // Specify the output directory for the compiled files
+    "esModuleInterop": true,           // To allow default imports from CommonJS modules
+    "strict": true,                    // Enable strict type checking
+    "sourceMap": true,                 // Optionally generate source maps
+    "allowJs": false,                  // Don't allow JavaScript files
+    "skipLibCheck": true               // Skip type checking for declaration files (for speed)
+  },
+  "include": ["src/**/*"],             // Include all files in the "src" folder
+  "exclude": ["node_modules"]          // Exclude node_modules
+}

@@ -10,19 +10,19 @@
 ### Using npm
 
 ```bash
-npm install gomarketme-react-native-expo
+npm install gomarketme-react-native-expo@2.0.0
 ```
 
 ### Using yarn
 
 ```bash
-yarn add gomarketme-react-native-expo
+yarn add gomarketme-react-native-expo@2.0.0
 ```
 
 ### Using pnpm
 
 ```bash
-pnpm add gomarketme-react-native-expo
+pnpm add gomarketme-react-native-expo@2.0.0
 ```
 
 
@@ -35,11 +35,7 @@ import GoMarketMe from 'gomarketme-react-native-expo';
 
 export default function App() {
 
-  const initializeSDK = async () => {
-    await GoMarketMe.initialize('YOUR_API_KEY'); // Replace with your actual API key
-  };
-
-  initializeSDK();
+  GoMarketMe.initialize('API_KEY'); // Replace with your actual API key
   
   return (
     <View style={styles.container}>
@@ -55,3 +51,5 @@ Make sure to replace API_KEY with your actual GoMarketMe API key. You can find i
 ## Support
 
 If you encounter any problems or issues, please contact us at [integrations@gomarketme.co](mailto:integrations@gomarketme.co) or visit [https://gomarketme.co](https://gomarketme.co).
+
+Checkout our sample expo app at [https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app](https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app).

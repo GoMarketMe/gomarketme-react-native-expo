@@ -1,26 +1,145 @@
 import { Platform, Dimensions, PixelRatio } from 'react-native';
-import * as Localization from 'expo-localization';
-import * as InAppPurchases from 'expo-in-app-purchases';
 import axios from 'axios';
+import * as RNIap from 'react-native-iap';
+import * as Application from 'expo-application';
 import * as Device from 'expo-device';
+import * as Localization from 'expo-localization';
 
-interface CustomPurchase {
-  productId: string;
-  transactionDate: string;
-  transactionId: string;
-  verificationData: {
-    localVerificationData: string;
-  };
+export class GoMarketMeAffiliateMarketingData {
+  campaign: Campaign;
+  affiliate: Affiliate;
+  saleDistribution: SaleDistribution;
+  affiliateCampaignCode: string;
+  deviceId: string;
+  offerCode?: string;
+
+  constructor(
+    campaign: Campaign,
+    affiliate: Affiliate,
+    saleDistribution: SaleDistribution,
+    affiliateCampaignCode: string,
+    deviceId: string,
+    offerCode?: string
+  ) {
+    this.campaign = campaign;
+    this.affiliate = affiliate;
+    this.saleDistribution = saleDistribution;
+    this.affiliateCampaignCode = affiliateCampaignCode;
+    this.deviceId = deviceId;
+    this.offerCode = offerCode;
+  }
+
+  static fromJson(json: Record<string, any>): GoMarketMeAffiliateMarketingData | null {
+    if (Object.keys(json).length === 0) {
+      return null;
+    }
+
+    return new GoMarketMeAffiliateMarketingData(
+      Campaign.fromJson(json.campaign),
+      Affiliate.fromJson(json.affiliate),
+      SaleDistribution.fromJson(json.sale_distribution),
+      json.affiliate_campaign_code || '',
+      json.device_id || '',
+      json.offer_code
+    );
+  }
+}
+
+export class Campaign {
+  id: string;
+  name: string;
+  status: string;
+  type: string;
+  publicLinkUrl?: string;
+
+  constructor(id: string, name: string, status: string, type: string, publicLinkUrl?: string) {
+    this.id = id;
+    this.name = name;
+    this.status = status;
+    this.type = type;
+    this.publicLinkUrl = publicLinkUrl;
+  }
+
+  static fromJson(json: Record<string, any>): Campaign {
+    return new Campaign(
+      json.id || '',
+      json.name || '',
+      json.status || '',
+      json.type || '',
+      json.public_link_url
+    );
+  }
+}
+
+export class Affiliate {
+  id: string;
+  firstName: string;
+  lastName: string;
+  countryCode: string;
+  instagramAccount: string;
+  tiktokAccount: string;
+  xAccount: string;
+
+  constructor(
+    id: string,
+    firstName: string,
+    lastName: string,
+    countryCode: string,
+    instagramAccount: string,
+    tiktokAccount: string,
+    xAccount: string
+  ) {
+    this.id = id;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.countryCode = countryCode;
+    this.instagramAccount = instagramAccount;
+    this.tiktokAccount = tiktokAccount;
+    this.xAccount = xAccount;
+  }
+
+  static fromJson(json: Record<string, any>): Affiliate {
+    return new Affiliate(
+      json.id || '',
+      json.first_name || '',
+      json.last_name || '',
+      json.country_code || '',
+      json.instagram_account || '',
+      json.tiktok_account || '',
+      json.x_account || ''
+    );
+  }
+}
+
+export class SaleDistribution {
+  platformPercentage: string;
+  affiliatePercentage: string;
+
+  constructor(platformPercentage: string, affiliatePercentage: string) {
+    this.platformPercentage = platformPercentage;
+    this.affiliatePercentage = affiliatePercentage;
+  }
+
+  static fromJson(json: Record<string, any>): SaleDistribution {
+    return new SaleDistribution(
+      json.platform_percentage || '',
+      json.affiliate_percentage || ''
+    );
+  }
 }
 
 class GoMarketMe {
   private static instance: GoMarketMe;
+  private sdkType = 'ReactNativeExpo';
+  private sdkVersion = '2.0.0';
   private sdkInitializedKey = 'GOMARKETME_SDK_INITIALIZED';
-  private affiliateCampaignCode = '';
-  private deviceId = '';
-  private sdkInitializationUrl = 'https://api.gomarketme.net/v1/sdk-initialization';
-  private systemInfoUrl = 'https://api.gomarketme.net/v1/mobile/system-info';
-  private eventUrl = 'https://api.gomarketme.net/v1/event';
+  private sdkInitializationUrl = 'https://4v9008q1a5.execute-api.us-west-2.amazonaws.com/prod/v1/sdk-initialization';
+  private systemInfoUrl = 'https://4v9008q1a5.execute-api.us-west-2.amazonaws.com/prod/v1/mobile/system-info';
+  private eventUrl = 'https://4v9008q1a5.execute-api.us-west-2.amazonaws.com/prod/v1/event';
+  private _affiliateCampaignCode = '';
+  private _deviceId = '';
+  private _packageName = ''
+  public affiliateMarketingData?: GoMarketMeAffiliateMarketingData | null;
 
   private constructor() { }
 
@@ -33,76 +152,60 @@ class GoMarketMe {
 
   public async initialize(apiKey: string): Promise<void> {
     try {
-      const isSDKInitialized = await this.isSDKInitialized();
+      const isSDKInitialized = await this._isSDKInitialized();
       if (!isSDKInitialized) {
-        await this.postSDKInitialization(apiKey);
+        await this._postSDKInitialization(apiKey);
       }
-      const systemInfo = await this.getSystemInfo();
-      await this.postSystemInfo(systemInfo, apiKey);
-      await this.addListener(apiKey);
+      this._packageName = Application.applicationId ?? '';
+      const systemInfo = await this._getSystemInfo();
+      this.affiliateMarketingData = await this._postSystemInfo(systemInfo, apiKey);
+      await this._addListener(apiKey);
     } catch (e) {
-      console.error('Error initializing GoMarketMe:', e);
+      console.log('Error initializing GoMarketMe:', e);
     }
   }
 
-  private async addListener(apiKey: string): Promise<void> {
-    InAppPurchases.setPurchaseListener(async ({ responseCode, results }) => {
-      if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
-        for (const purchase of results) {
-          if (this.affiliateCampaignCode) {
-            const mappedPurchase = this.mapPurchase(purchase);
-            const productIds = await this.fetchPurchases([mappedPurchase], apiKey);
-            await this.fetchPurchaseProducts(productIds, apiKey);
-          }
-        }
-      }
-    });
-  }
-
-  private mapPurchase(purchase: InAppPurchases.InAppPurchase): CustomPurchase {
-    return {
-      productId: purchase.productId,
-      transactionDate: new Date().toISOString(),
-      transactionId: purchase.purchaseToken ?? "",
-      verificationData: {
-        localVerificationData: purchase.purchaseToken ?? "",
-      },
-    };
-  }
-
-  private async fetchPurchases(purchaseDetailsList: CustomPurchase[], apiKey: string): Promise<string[]> {
-    const productIds: string[] = [];
-    for (const purchase of purchaseDetailsList) {
-      if (purchase.verificationData.localVerificationData) {
-        if (purchase.productId && !productIds.includes(purchase.productId)) {
-          productIds.push(purchase.productId);
-        }
-      }
+  private async _addListener(apiKey: string): Promise<void> {
+    try {
+      RNIap.initConnection().then(result => {
+        RNIap.purchaseUpdatedListener(async (purchase: RNIap.Purchase) => {
+          await this._fetchConsolidatedPurchases([purchase], apiKey);
+        });
+        RNIap.purchaseErrorListener((error) => {
+          console.log('Purchase error:', error);
+        });
+      });
+    } catch (e) {
+      console.log('Error setting up IAP listeners:', e);
     }
-    return productIds;
   }
 
-  private async getSystemInfo(): Promise<{}> {
+  private async _getSystemInfo(): Promise<any> {
     const deviceData = Platform.select({
-      ios: await this.readIosDeviceInfo(),
-      android: await this.readAndroidDeviceInfo(),
+      ios: await this._readIosDeviceInfo(),
+      android: await this._readAndroidDeviceInfo(),
     });
+
+    this._deviceId = deviceData['deviceId'];
+
+    const devicePixelRatio = PixelRatio.get();
+    const dimension = Dimensions.get('window');
 
     const windowData = {
-      devicePixelRatio: PixelRatio.get(),
-      width: Dimensions.get('window').width,
-      height: Dimensions.get('window').height,
+      devicePixelRatio: devicePixelRatio,
+      width: dimension.width * devicePixelRatio,
+      height: dimension.height * devicePixelRatio,
     };
 
     return {
       device_info: deviceData,
       window_info: windowData,
-      time_zone_code: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      language_code: Localization.locale,
+      time_zone: this._getTimeZone(),
+      language_code: this._getLanguageCode(),
     };
   }
 
-  private async postSDKInitialization(apiKey: string): Promise<void> {
+  private async _postSDKInitialization(apiKey: string): Promise<void> {
     try {
       const response = await axios.post(this.sdkInitializationUrl, {}, {
         headers: {
@@ -111,109 +214,143 @@ class GoMarketMe {
         },
       });
       if (response.status === 200) {
-        console.log('Initialized!');
-        await this.markSDKAsInitialized();
+        await this._markSDKAsInitialized();
       } else {
-        console.error('Failed to mark SDK as Initialized. Status code:', response.status);
+        console.log('Failed to mark SDK as Initialized. Status code:', response.status);
       }
     } catch (e) {
-      console.error('Error sending SDK information to server:', e);
+      console.log('Error sending SDK information to server:', e);
     }
   }
 
-  private async postSystemInfo(systemInfo: any, apiKey: string): Promise<void> {
+  private async _postSystemInfo(data: any, apiKey: string): Promise<GoMarketMeAffiliateMarketingData | null> {
+    let output: GoMarketMeAffiliateMarketingData | null = null;
     try {
-      const response = await axios.post(this.systemInfoUrl, systemInfo, {
+      data['sdk_type'] = this.sdkType;
+      data['sdk_version'] = this.sdkVersion;
+      data['package_name'] = this._packageName;
+      const response = await axios.post(this.systemInfoUrl, data, {
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
         },
       });
       if (response.status === 200) {
-        const responseData = response.data;
-        if (responseData.affiliate_campaign_code) {
-          this.affiliateCampaignCode = responseData.affiliate_campaign_code;
-        }
-        if (responseData.device_id) {
-          this.deviceId = responseData.device_id;
+        output = GoMarketMeAffiliateMarketingData.fromJson(response.data);
+        if (output != null) {
+          this._affiliateCampaignCode = output.affiliateCampaignCode;
         }
       } else {
-        console.error('Failed to send system info. Status code:', response.status);
+        console.log('Failed to send system info. Status code:', response.status);
       }
     } catch (e) {
-      console.error('Error sending system info to server:', e);
+      console.log('Error sending system info to server:', e);
     }
+    return output;
   }
 
-  private async readAndroidDeviceInfo(): Promise<any> {
+  private _generateAndroidId = () => {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    const getRandomString = (length: number) => {
+      return Array.from({ length }, () =>
+        characters[Math.floor(Math.random() * characters.length)]
+      ).join('');
+    };
+
+    const part1 = getRandomString(4);
+    const part2 = getRandomString(6);
+    const part3 = getRandomString(3);
+
+    return `${part1}.${part2}.${part3}`;
+  };
+
+  private async _readAndroidDeviceInfo(): Promise<any> {
+    let androidId = Platform.OS === 'android' ? Application.getAndroidId() : '';
+    let deviceId = this._generateAndroidId();
+    let systemName = Device.osName;
+    let systemVersion = Device.osVersion;
+    let brand = Device.brand;
+    let model = Device.modelName;
+    let manufacturer = Device.manufacturer;
+    let isEmulator = !Device.isDevice;
+
     return {
-      deviceId: Device.osBuildId,
-      systemName: Device.osName,
-      systemVersion: Device.osVersion,
-      brand: Device.brand,
-      model: Device.modelName,
-      manufacturer: Device.manufacturer,
-      isEmulator: !Device.isDevice,
+      deviceId: androidId,
+      _deviceId: deviceId,
+      _uniqueId: deviceId,
+      systemName: systemName,
+      systemVersion: systemVersion,
+      brand: brand,
+      model: model,
+      manufacturer: manufacturer,
+      isEmulator: isEmulator
     };
   }
 
-  private async readIosDeviceInfo(): Promise<any> {
+  private async _readIosDeviceInfo(): Promise<any> {
+
+    let deviceId = Platform.OS === 'ios' ? await Application.getIosIdForVendorAsync() : '';
+    let systemName = Device.osName;
+    let systemVersion = Device.osVersion;
+    let brand = Device.brand;
+    let model = Device.modelName;
+    let manufacturer = Device.manufacturer;
+    let isEmulator = !Device.isDevice;
+
     return {
-      deviceId: Device.osBuildId,
-      systemName: Device.osName,
-      systemVersion: Device.osVersion,
-      brand: Device.brand,
-      model: Device.modelName,
-      manufacturer: Device.manufacturer,
-      isEmulator: !Device.isDevice,
+      deviceId: deviceId,
+      _deviceId: deviceId,
+      systemName: systemName,
+      systemVersion: systemVersion,
+      brand: brand,
+      model: model,
+      manufacturer: manufacturer,
+      isEmulator: isEmulator
     };
   }
 
-  private async markSDKAsInitialized(): Promise<boolean> {
-    // try {
-    //   await AsyncStorage.setItem(this.sdkInitializedKey, 'true');
-    //   return true;
-    // } catch (e) {
-    //   console.error('Failed to save SDK initialization:', e);
-    //   return false;
-    // }
-    return true;
-  }
+  private _getTimeZone = (): string => {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  };
 
-  private async isSDKInitialized(): Promise<boolean> {
-    // try {
-    //   const value = await AsyncStorage.getItem(this.sdkInitializedKey);
-    //   return value === 'true';
-    // } catch (e) {
-    //   console.error('Failed to load SDK initialization:', e);
-    //   return false;
-    // }
-    return false;
+  private _getLanguageCode(): string {
+    return Localization.getLocales()[0].languageTag;
   }
-
-  private async fetchPurchaseProducts(productIds: string[], apiKey: string): Promise<void> {
-    try {
-      const productsResponse = await InAppPurchases.getProductsAsync(productIds);
-      const products = productsResponse.results;
-      if (products && products.length > 0) {
-        for (const product of products) {
-          await this.sendEventToServer(JSON.stringify(this.serializeProductDetails(product)), 'product', apiKey);
+  private async _fetchConsolidatedPurchases(purchaseDetailsList: RNIap.Purchase[], apiKey: string): Promise<void> {
+    for (const purchase of purchaseDetailsList) {
+      if (purchase.transactionReceipt) {
+        var data = this._serializePurchaseDetails(purchase);
+        data['products'] = []
+        if (data.productID != '') {
+          const products = await RNIap.getProducts({ skus: [data.productID] })
+          if (products.length > 0) {
+            for (const product0 of products) {
+              data['products'].push(this._serializeProductDetails(product0))
+            }
+          }
+          else {
+            const products = await RNIap.getSubscriptions({ skus: [data.productID] });
+            if (products.length > 0) {
+              for (const product0 of products) {
+                data['products'].push(this._serializeSubscriptionDetails(product0))
+              }
+            }
+          }
         }
-      } else {
-        await this.sendEventToServer(JSON.stringify({ notFoundIDs: productIds.join(',') }), 'product', apiKey);
+        await this._sendEventToServer(JSON.stringify(data), 'purchase', apiKey);
       }
-    } catch (e) {
-      console.error('Error fetching products:', e);
     }
   }
 
-  private async sendEventToServer(body: string, eventType: string, apiKey: string): Promise<void> {
+  private async _sendEventToServer(body: string, eventType: string, apiKey: string): Promise<void> {
     try {
       const response = await axios.post(this.eventUrl, body, {
         headers: {
           'Content-Type': 'application/json',
-          'x-affiliate-campaign-code': this.affiliateCampaignCode,
-          'x-device-id': this.deviceId,
+          'x-affiliate-campaign-code': this._affiliateCampaignCode,
+          'x-device-id': this._deviceId,
           'x-event-type': eventType,
           'x-product-type': Platform.OS,
           'x-source-name': Platform.OS === 'android' ? 'google_play' : 'app_store',
@@ -223,22 +360,85 @@ class GoMarketMe {
       if (response.status === 200) {
         console.log(`${eventType} sent successfully`);
       } else {
-        console.error(`Failed to send ${eventType}. Status code:`, response.status);
+        console.log(`Failed to send ${eventType}. Status code:`, response.status);
       }
     } catch (e) {
-      console.error(`Error sending ${eventType} to server:`, e);
+      console.log(`Error sending ${eventType} to server:`, e);
     }
   }
 
-  private serializeProductDetails(product: InAppPurchases.IAPItemDetails): any {
+  private _serializePurchaseDetails(purchase: RNIap.Purchase): any {
     return {
+      packageName: this._packageName,
+      productID: purchase.productId,
+      purchaseID: purchase.transactionId || '',
+      transactionDate: purchase.transactionDate || '',
+      status: Platform.select({
+        ios: (purchase as any).transactionStateIOS, // Removed non-existent properties
+        android: (purchase as any).purchaseStateAndroid,
+      }),
+      verificationData: {
+        localVerificationData: purchase.transactionReceipt,
+        serverVerificationData: purchase.transactionReceipt,
+        source: Platform.OS === 'android' ? 'google_play' : 'app_store',
+      },
+      pendingCompletePurchase: '',
+      error: {},
+      hashCode: '',
+      _purchase: purchase
+    };
+  }
+
+  private _serializeProductDetails(product: RNIap.Product): any {
+    return {
+      packageName: this._packageName,
       productID: product.productId,
       productTitle: product.title,
       productDescription: product.description,
-      productPrice: product.price,
+      productPrice: product.localizedPrice,
       productRawPrice: product.price,
-      productCurrencyCode: product.priceCurrencyCode,
+      productCurrencySymbol: product.localizedPrice.replace(product.price, ''),
+      productCurrencyCode: product.currency,
+      hashCode: '',
+      _product: product
     };
+  }
+
+  private _serializeSubscriptionDetails(subscription: RNIap.Subscription): any {
+    let output: any = {
+      productID: subscription.productId,
+      productTitle: subscription.title,
+      productDescription: subscription.description,
+      hashCode: '',
+    };
+
+    if (Platform.OS === 'ios') {
+      const subscriptionIOS = subscription as RNIap.SubscriptionIOS;
+      output.productPrice = subscriptionIOS.localizedPrice;
+      output.productRawPrice = subscriptionIOS.price;
+      output.productCurrencyCode = subscriptionIOS.currency;
+      output._subscription = subscriptionIOS;
+    } else if (Platform.OS === 'android') {
+      const subscriptionAndroid = subscription as RNIap.SubscriptionAndroid;
+      if (subscriptionAndroid.subscriptionOfferDetails?.length) {
+        const offerDetails = subscriptionAndroid.subscriptionOfferDetails[0];
+        const priceAmountMicros = parseInt(offerDetails.pricingPhases.pricingPhaseList[0].priceAmountMicros, 10) || 0;
+        output.productPrice = offerDetails.pricingPhases.pricingPhaseList[0].formattedPrice;
+        output.productRawPrice = String(priceAmountMicros / 1_000_000);
+        output.productCurrencyCode = offerDetails.pricingPhases.pricingPhaseList[0].priceCurrencyCode;
+      }
+      output._subscription = subscriptionAndroid;
+    }
+
+    return output;
+  }
+
+  private async _markSDKAsInitialized(): Promise<boolean> {
+    return true;
+  }
+
+  private async _isSDKInitialized(): Promise<boolean> {
+    return false;
   }
 }
 
