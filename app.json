@@ -2,7 +2,7 @@
   "expo": {
     "name": "gomarketme-react-native-expo",
     "slug": "gomarketme-react-native-expo",
-    "version": "1.0.7",
+    "version": "2.0.1",
     "description": "Affiliate Marketing for React Native Expo-Based iOS and Android Apps.",
     "sdkVersion": "52.0.0",
     "platforms": [

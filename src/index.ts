@@ -131,7 +131,7 @@ export class SaleDistribution {
 class GoMarketMe {
   private static instance: GoMarketMe;
   private sdkType = 'ReactNativeExpo';
-  private sdkVersion = '2.0.0';
+  private sdkVersion = '2.0.1';
   private sdkInitializedKey = 'GOMARKETME_SDK_INITIALIZED';
   private sdkInitializationUrl = 'https://4v9008q1a5.execute-api.us-west-2.amazonaws.com/prod/v1/sdk-initialization';
   private systemInfoUrl = 'https://4v9008q1a5.execute-api.us-west-2.amazonaws.com/prod/v1/mobile/system-info';
@@ -159,6 +159,8 @@ class GoMarketMe {
       this._packageName = Application.applicationId ?? '';
       const systemInfo = await this._getSystemInfo();
       this.affiliateMarketingData = await this._postSystemInfo(systemInfo, apiKey);
+      const currPurchases = await RNIap.getPurchaseHistory();
+      await this._fetchConsolidatedPurchases(currPurchases, apiKey)
       await this._addListener(apiKey);
     } catch (e) {
       console.log('Error initializing GoMarketMe:', e);
@@ -383,7 +385,7 @@ class GoMarketMe {
         source: Platform.OS === 'android' ? 'google_play' : 'app_store',
       },
       pendingCompletePurchase: '',
-      error: {},
+      error: '',
       hashCode: '',
       _purchase: purchase
     };
