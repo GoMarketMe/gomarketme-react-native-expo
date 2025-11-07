@@ -136,7 +136,7 @@ export class SaleDistribution {
 class GoMarketMe {
   private static instance: GoMarketMe;
   private sdkType = 'ReactNativeExpo';
-  private sdkVersion = '4.0.0';
+  private sdkVersion = '4.0.1';
   private sdkInitializedKey = 'GOMARKETME_SDK_INITIALIZED';
   private sdkInitializationUrl =
     'https://4v9008q1a5.execute-api.us-west-2.amazonaws.com/prod/v1/sdk-initialization';
@@ -258,26 +258,8 @@ class GoMarketMe {
     return null;
   }
 
-  private _generateAndroidId = () => {
-    const characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    const getRandomString = (length: number) => {
-      return Array.from({ length }, () =>
-        characters[Math.floor(Math.random() * characters.length)]
-      ).join('');
-    };
-
-    const part1 = getRandomString(4);
-    const part2 = getRandomString(6);
-    const part3 = getRandomString(3);
-
-    return `${part1}.${part2}.${part3}`;
-  };
-
   private async _readAndroidDeviceInfo() {
-    let androidId = Platform.OS === 'android' ? Application.getAndroidId() : '';
-    let deviceId = this._generateAndroidId();
+    let androidId = Platform.OS === 'android' ? await Application.getAndroidId() : '';
     let systemName = Device.osName;
     let systemVersion = Device.osVersion;
     let brand = Device.brand;
@@ -286,8 +268,8 @@ class GoMarketMe {
     let isEmulator = !Device.isDevice;
     return {
       deviceId: androidId,
-      _deviceId: deviceId,
-      _uniqueId: deviceId,
+      _deviceId: androidId,
+      _uniqueId: androidId,
       brand: brand,
       model: model,
       manufacturer: manufacturer,
@@ -304,7 +286,6 @@ class GoMarketMe {
     let brand = Device.brand;
     let model = Device.modelName;
     let manufacturer = Device.manufacturer;
-    let isEmulator = !Device.isDevice;
     return {
       deviceId: deviceId,
       _deviceId: deviceId,

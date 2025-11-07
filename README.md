@@ -10,23 +10,23 @@
 ### Using npm
 
 ```bash
-npm install gomarketme-react-native-expo@4.0.0
+npm install gomarketme-react-native-expo@4.0.1
 ```
 
 ### Using yarn
 
 ```bash
-yarn add gomarketme-react-native-expo@4.0.0
+yarn add gomarketme-react-native-expo@4.0.1
 ```
 
 ### Using pnpm
 
 ```bash
-pnpm add gomarketme-react-native-expo@4.0.0
+pnpm add gomarketme-react-native-expo@4.0.1
 ```
 ##
 
-GoMarketMe is built on top of expo-iap, so you may also need to install the following package: 
+GoMarketMe is built on top of expo-iap, so you may also need to install: 
 ```bash
 npm install expo-iap
 (or yarn add expo-iap)
