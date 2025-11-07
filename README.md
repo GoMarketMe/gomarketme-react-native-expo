@@ -2,7 +2,7 @@
 	<img src="https://static.gomarketme.net/assets/gmm-icon.png" alt="GoMarketMe"/>
 	<br>
     <h1>gomarketme-react-native-expo</h1>
-	<p>Affiliate Marketing for React Native Expo-Based iOS and Android Apps.</p>
+	<p>Affiliate marketing for Expo apps on iOS and Android.</p>
 </div>
 
 ## Installation
@@ -10,46 +10,87 @@
 ### Using npm
 
 ```bash
-npm install gomarketme-react-native-expo@2.0.1
+npm install gomarketme-react-native-expo@4.0.0
 ```
 
 ### Using yarn
 
 ```bash
-yarn add gomarketme-react-native-expo@2.0.1
+yarn add gomarketme-react-native-expo@4.0.0
 ```
 
 ### Using pnpm
 
 ```bash
-pnpm add gomarketme-react-native-expo@2.0.1
+pnpm add gomarketme-react-native-expo@4.0.0
 ```
+##
 
+GoMarketMe is built on top of expo-iap, so you may also need to install the following package: 
+```bash
+npm install expo-iap
+(or yarn add expo-iap)
+(or pnpm add expo-iap)
+```
 
 ## Usage
 
-To initialize GoMarketMe, import the `gomarketme-react-native-expo` package and create a new instance of `GoMarketMe`:
+⚙️ Basic Integration
+
+To initialize GoMarketMe, import the `gomarketme` package and initialize the SDK with your API key:
 
 ```tsx
 import GoMarketMe from 'gomarketme-react-native-expo';
 
-export default function App() {
-
-  GoMarketMe.initialize('API_KEY'); // Replace with your actual API key
+useEffect(() => {
   
-  return (
-    <View style={styles.container}>
-      <Text>My App</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+  GoMarketMe.initialize('API_KEY'); // Initialize with your API key
+
+}, []);
 ```
 
-Make sure to replace API_KEY with your actual GoMarketMe API key. You can find it on the product onboarding page and under Profile > API Key.
+No further steps needed. The SDK automatically attributes and reports your affiliate sales in real time.
+
+⚙️ OR - Advanced Integration
+
+Use this approach for more advanced scenarios, such as:
+- Affiliate-aware paywalls: Offer exclusive pricing or promotions to users acquired through affiliate campaigns.
+- Personalized onboarding: For example, a social or fitness app can automatically make new users follow the influencer who referred them, strengthening engagement and maximizing the affiliate’s impact.
+
+```tsx
+import GoMarketMe from 'gomarketme-react-native-expo';
+  
+const goMarketMeSDK = GoMarketMe;
+const [affiliateData, setAffiliateData] = useState<GoMarketMeAffiliateMarketingData | null>(null);
+
+useEffect(() => {
+  
+  const initGoMarketMe = async () => {
+    
+    await goMarketMeSDK.initialize('API_KEY'); // Initialize with your API key
+    const data = goMarketMeSDK.affiliateMarketingData;
+
+    if (data) { // user acquired through affiliate campaign
+      
+      console.log('Affiliate ID:', data.affiliate?.id);                         // maps to GoMarketMe > Affiliates > Export > id column
+      console.log('Affiliate %:', data.saleDistribution?.affiliatePercentage);  // maps to GoMarketMe > Campaigns > [Name] > Affiliate's Revenue Split (%)
+      console.log('Campaign ID:', data.campaign?.id);                           // maps to GoMarketMe > Campaigns > [Name] > id in the URL
+
+      setAffiliateData(data);
+    }
+
+  };
+
+  initGoMarketMe();
+}, []);
+```
+
+Make sure to replace `API_KEY` with your actual GoMarketMe API key. You can find it on the product onboarding page and under **Profile > API Key**.
+
+For React Native (non-Expo), go to [https://www.npmjs.com/package/gomarketme-react-native](https://www.npmjs.com/package/gomarketme-react-native).
 
 ## Support
 
-If you encounter any problems or issues, please contact us at [integrations@gomarketme.co](mailto:integrations@gomarketme.co) or visit [https://gomarketme.co](https://gomarketme.co).
+Check out our sample Expo app at [https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app](https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app).
 
-Checkout our sample expo app at [https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app](https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app).
+If you run into any issues, please reach out to us at [integrations@gomarketme.co](mailto:integrations@gomarketme.co) or visit [https://gomarketme.co](https://gomarketme.co).
