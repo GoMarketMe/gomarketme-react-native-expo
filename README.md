@@ -10,19 +10,19 @@
 ### Using npm
 
 ```bash
-npm install gomarketme-react-native-expo@4.0.1
+npm install gomarketme-react-native-expo@4.0.2
 ```
 
 ### Using yarn
 
 ```bash
-yarn add gomarketme-react-native-expo@4.0.1
+yarn add gomarketme-react-native-expo@4.0.2
 ```
 
 ### Using pnpm
 
 ```bash
-pnpm add gomarketme-react-native-expo@4.0.1
+pnpm add gomarketme-react-native-expo@4.0.2
 ```
 ##
 
@@ -51,7 +51,7 @@ useEffect(() => {
 
 No further steps needed. The SDK automatically attributes and reports your affiliate sales in real time.
 
-⚙️ OR - Advanced Integration
+⚙️ OR - Advanced Integration ([Programmatic Affiliate Marketing](https://gomarketme.co/programmatic-affiliate-marketing/))
 
 Use this approach for more advanced scenarios, such as:
 - Affiliate-aware paywalls: Offer exclusive pricing or promotions to users acquired through affiliate campaigns.
