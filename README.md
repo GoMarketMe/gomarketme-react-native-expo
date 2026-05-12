@@ -1,96 +1,70 @@
-<div align="center">
-	<img src="https://static.gomarketme.net/assets/gmm-icon.png" alt="GoMarketMe"/>
-	<br>
-    <h1>gomarketme-react-native-expo</h1>
-	<p>Affiliate marketing for Expo apps on iOS and Android.</p>
-</div>
+# Deprecated: use `gomarketme-react-native` instead
 
-## Installation
+> **This Expo-specific GoMarketMe package/sample app is deprecated.**
+>
+> Expo apps are now supported by the main GoMarketMe React Native SDK v5+.
 
-### Using npm
+Please use the main React Native SDK going forward:
 
 ```bash
-npm install gomarketme-react-native-expo@4.0.2
+npm install gomarketme-react-native@latest
 ```
 
-### Using yarn
+```ts
+import GoMarketMe from 'gomarketme-react-native';
+```
+
+## Why this is deprecated
+
+GoMarketMe previously maintained a separate Expo-specific package/sample app for React Native Expo projects.
+
+That is no longer necessary. The main GoMarketMe React Native SDK v5+ now works with Expo apps using its own native bridges.
+
+## What to use instead
+
+Use:
+
+- npm package: `gomarketme-react-native`
+- GitHub repository: https://github.com/GoMarketMe/gomarketme-react-native
+- npm page: https://www.npmjs.com/package/gomarketme-react-native
+
+Do not use:
+
+- `gomarketme-react-native-expo`
+
+## Migration from `gomarketme-react-native-expo`
+
+### 1. Remove the old Expo-specific package
 
 ```bash
-yarn add gomarketme-react-native-expo@4.0.2
+npm uninstall gomarketme-react-native-expo
 ```
 
-### Using pnpm
+### 2. Install the main React Native SDK
 
 ```bash
-pnpm add gomarketme-react-native-expo@4.0.2
-```
-##
-
-GoMarketMe is built on top of expo-iap, so you may also need to install: 
-```bash
-npm install expo-iap
-(or yarn add expo-iap)
-(or pnpm add expo-iap)
+npm install gomarketme-react-native@latest
 ```
 
-## Usage
+### 3. Update your imports
 
-⚙️ Basic Integration
-
-To initialize GoMarketMe, import the `gomarketme` package and initialize the SDK with your API key:
-
-```tsx
-import GoMarketMe from 'gomarketme-react-native-expo';
-
-useEffect(() => {
-  
-  GoMarketMe.initialize('API_KEY'); // Initialize with your API key
-
-}, []);
+```diff
+- import GoMarketMe from 'gomarketme-react-native-expo';
++ import GoMarketMe from 'gomarketme-react-native';
 ```
 
-No further steps needed. The SDK automatically attributes and reports your affiliate sales in real time.
+### 4. Follow the main SDK setup instructions
 
-⚙️ OR - Advanced Integration ([Programmatic Affiliate Marketing](https://gomarketme.co/programmatic-affiliate-marketing/))
+Please follow the latest setup instructions in the main React Native SDK repository:
 
-Use this approach for more advanced scenarios, such as:
-- Affiliate-aware paywalls: Offer exclusive pricing or promotions to users acquired through affiliate campaigns.
-- Personalized onboarding: For example, a social or fitness app can automatically make new users follow the influencer who referred them, strengthening engagement and maximizing the affiliate’s impact.
+https://github.com/GoMarketMe/gomarketme-react-native
 
-```tsx
-import GoMarketMe from 'gomarketme-react-native-expo';
-  
-const goMarketMeSDK = GoMarketMe;
-const [affiliateData, setAffiliateData] = useState<GoMarketMeAffiliateMarketingData | null>(null);
+## Status of this package/sample app
 
-useEffect(() => {
-  
-  const initGoMarketMe = async () => {
-    
-    await goMarketMeSDK.initialize('API_KEY'); // Initialize with your API key
-    const data = goMarketMeSDK.affiliateMarketingData;
+This package/sample app is kept online only to help existing users find the correct migration path.
 
-    if (data) { // user acquired through affiliate campaign
-      
-      console.log('Affiliate ID:', data.affiliate?.id);                         // maps to GoMarketMe > Affiliates > Export > id column
-      console.log('Affiliate %:', data.saleDistribution?.affiliatePercentage);  // maps to GoMarketMe > Campaigns > [Name] > Affiliate's Revenue Split (%)
-      console.log('Campaign ID:', data.campaign?.id);                           // maps to GoMarketMe > Campaigns > [Name] > id in the URL
+It is no longer actively maintained and should not be used for new integrations.
 
-      setAffiliateData(data);
-    }
+## Need help?
 
-  };
-
-  initGoMarketMe();
-}, []);
-```
-
-Make sure to replace `API_KEY` with your actual GoMarketMe API key. You can find it on the product onboarding page and under **Profile > API Key**.
-
-For React Native (non-Expo), go to [https://www.npmjs.com/package/gomarketme-react-native](https://www.npmjs.com/package/gomarketme-react-native).
-
-## Support
-
-Check out our sample Expo app at [https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app](https://github.com/GoMarketMe/gomarketme-react-native-expo-sample-app).
-
-If you run into any issues, please reach out to us at [integrations@gomarketme.co](mailto:integrations@gomarketme.co) or visit [https://gomarketme.co](https://gomarketme.co).
+If you have questions about migrating your Expo app to the main GoMarketMe React Native SDK, please contact GoMarketMe support [integrations@gomarketme.co](mailto:integrations@gomarketme.co) or visit [https://gomarketme.co](https://gomarketme.co).

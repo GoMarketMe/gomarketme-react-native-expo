@@ -1,6 +1,6 @@
 {
   "name": "gomarketme-react-native-expo",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Affiliate Marketing for Expo-Based iOS and Android Apps.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
